@@ -68,3 +68,4 @@ class SimulatorMqttClient:
     def disconnect(self):
         self._client.loop_stop()
         self._client.disconnect()
+    

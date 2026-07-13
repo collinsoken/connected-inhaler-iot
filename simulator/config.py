@@ -3,6 +3,9 @@ Configuration for the connected inhaler sensor simulator.
 Central place for patient/device definitions and tunable parameters.
 """
 
+from shared.locations import LOCATION_ANCHORS
+
+
 # MQTT broker settings
 MQTT_BROKER_HOST = "localhost"
 MQTT_BROKER_PORT = 1883
@@ -38,14 +41,6 @@ PATIENTS = [
         },
     },
 ]
-
-# Mock location (for ambient_reading GPS simulation)
-# Coordinates used purely as believable mock anchors.
-LOCATION_ANCHORS = {
-    "home": (51.5074, -0.1278),
-    "work": (51.5155, -0.0922),
-    "outdoors": (51.5033, -0.1195),
-}
 
 def validate_config():
     valid_types = {"MDI", "DPI"}
