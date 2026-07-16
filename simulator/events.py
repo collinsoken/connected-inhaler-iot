@@ -83,12 +83,18 @@ def generate_actuation_event(patient_id, device_role, device_info):
         "raw_longitude": raw_longitude,
     }
 
-def generate_ambient_reading_event(patient_id):
+def generate_ambient_reading_event(patient_id, device_role,device_info):
+    """device_role: 'rescue' or 'maintenance'."""
+    device_id = device_info["device_id"]
+    device_type = device_info["device_type"]
     raw_latitude, raw_longitude = _generate_raw_gps()
 
     return {
         "event_id": str(uuid.uuid4()),
         "patient_id": patient_id,
+        "device_id": device_id,
+        "device_type": device_type,
+        "device_role": device_role,
         "timestamp": _timestamp(),
         "event_type": "ambient_reading",
         "ambient_temperature": round(random.gauss(mu=18, sigma=6), 1),
@@ -96,3 +102,4 @@ def generate_ambient_reading_event(patient_id):
         "raw_latitude": raw_latitude,
         "raw_longitude": raw_longitude,
     }
+    

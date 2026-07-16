@@ -46,7 +46,9 @@ def run_patient(patient, stop_event: threading.Event):
                 last_actuation = now
 
             if now - last_ambient >= AMBIENT_READING_INTERVAL_SECONDS:
-                event = generate_ambient_reading_event(patient_id)
+                role = random.choice(["rescue", "maintenance"])  #NOSONAR
+                device_info = patient["devices"][role]
+                event = generate_ambient_reading_event(patient_id, role, device_info)
                 pending_events.append(event)
                 last_ambient = now
 
