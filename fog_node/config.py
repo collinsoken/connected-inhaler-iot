@@ -1,7 +1,19 @@
 """Configuration for the fog node."""
 
+import os
+
 from shared.locations import LOCATION_ANCHORS
 
+
+# --- AWS IoT Core ---
+IOT_ENDPOINT = "a2kjr9mz0ln25h-ats.iot.us-east-1.amazonaws.com"
+IOT_PORT = 8883
+CLOUD_CLIENT_ID = "fog-node-connected-inhaler"
+
+CERTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "certs")
+DEVICE_CERT_PATH = os.path.join(CERTS_DIR, "device-certificate.pem.crt")
+PRIVATE_KEY_PATH = os.path.join(CERTS_DIR, "private.pem.key")
+ROOT_CA_PATH = os.path.join(CERTS_DIR, "AmazonRootCA1.pem")
 
 MQTT_BROKER_HOST = "localhost"
 MQTT_BROKER_PORT = 1883
