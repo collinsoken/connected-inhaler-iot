@@ -8,13 +8,13 @@ Uses simple Euclidean distance, not Haversine — acceptable at the small
 scale (a few km) our mock anchors and GPS jitter operate within.
 """
 
-from fog_node.config import LOCATION_ANCHORS
+from shared.locations import LOCATION_ANCHORS
 
 
 def _nearest_zone(lat, lon):
-    """ 
+    """
     Returns the name of the nearest zone (from LOCATION_ANCHORS)
-    to the given latitude and longitude. 
+    to the given latitude and longitude.
     """
     closest_zone = None
     closest_distance = float("inf")

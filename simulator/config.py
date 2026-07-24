@@ -3,8 +3,6 @@ Configuration for the connected inhaler sensor simulator.
 Central place for patient/device definitions and tunable parameters.
 """
 
-from shared.locations import LOCATION_ANCHORS
-
 
 # MQTT broker settings
 MQTT_BROKER_HOST = "localhost"
@@ -70,6 +68,7 @@ PATIENTS = [
     },
 ]
 
+
 def validate_config():
     valid_types = {"MDI", "DPI"}
     for patient in PATIENTS:
@@ -80,4 +79,6 @@ def validate_config():
             assert device["device_type"] in valid_types, (
                 f"{patient['patient_id']} {role} device has invalid device_type: {device['device_type']!r}"
             )
+
+
 validate_config()

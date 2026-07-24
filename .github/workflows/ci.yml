@@ -30,7 +30,6 @@ jobs:
         run: |
           flake8 simulator fog_node shared cloud \
             --max-line-length=120 \
-            --exclude=simulator/manual_test_step2_2.py,simulator/manual_test_step2_3.py
 
       - name: Run unit tests (pytest)
         run: |

@@ -7,10 +7,11 @@ import random
 import uuid
 from datetime import datetime, timezone
 
+from simulator.config import PATIENTS, NOMINAL_DOSE_CAPACITY
+from shared.locations import LOCATION_ANCHORS
+
+
 _rng = random.SystemRandom()
-
-from simulator.config import PATIENTS, LOCATION_ANCHORS, NOMINAL_DOSE_CAPACITY
-
 
 # Simulator's authoritative device state (mirrors a real inhaler's
 # onboard dose counter — see architecture doc §6 for the rationale).
@@ -24,7 +25,6 @@ def _init_dose_counters():
 
 
 _init_dose_counters()
-
 
 
 def _timestamp():
@@ -41,6 +41,7 @@ def _flow_rate_for_device_type(device_type):
     else:
         raise ValueError(f"Unrecognized device_type: {device_type!r} (expected 'MDI' or 'DPI')")
     return round(max(0, value), 1)
+
 
 def _generate_raw_gps():
     """
@@ -59,6 +60,7 @@ def _generate_raw_gps():
     raw_latitude = round(base_lat + random.uniform(-0.002, 0.002), 6)
     raw_longitude = round(base_lon + random.uniform(-0.002, 0.002), 6)
     return raw_latitude, raw_longitude
+
 
 def generate_actuation_event(patient_id, device_role, device_info):
     """device_role: 'rescue' or 'maintenance'."""
@@ -83,7 +85,8 @@ def generate_actuation_event(patient_id, device_role, device_info):
         "raw_longitude": raw_longitude,
     }
 
-def generate_ambient_reading_event(patient_id, device_role,device_info):
+
+def generate_ambient_reading_event(patient_id, device_role, device_info):
     """device_role: 'rescue' or 'maintenance'."""
     device_id = device_info["device_id"]
     device_type = device_info["device_type"]
@@ -102,4 +105,3 @@ def generate_ambient_reading_event(patient_id, device_role,device_info):
         "raw_latitude": raw_latitude,
         "raw_longitude": raw_longitude,
     }
-    

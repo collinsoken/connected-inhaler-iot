@@ -2,8 +2,6 @@
 
 import os
 
-from shared.locations import LOCATION_ANCHORS
-
 
 # --- AWS IoT Core ---
 IOT_ENDPOINT = "a2kjr9mz0ln25h-ats.iot.us-east-1.amazonaws.com"
@@ -19,16 +17,16 @@ MQTT_BROKER_PORT = 1883
 
 '''
 --- Single fog node mode ---
-Uncomment the following lines to run this fog node as a single central fog node, 
+Uncomment the following lines to run this fog node as a single central fog node,
 which subscribes to all patients' events and computes cohort-level aggregates.
-This is the original topology used in the project report and demo, 
-but it is not scalable to multiple patients in a real deployment. 
+This is the original topology used in the project report and demo,
+but it is not scalable to multiple patients in a real deployment.
 It is kept here for demonstration purposes.
 '''
 # CLOUD_CLIENT_ID = "fog-node-connected-inhaler"
 # SUBSCRIBE_TOPIC = "patients/+/events"  # wildcard for all patients
 
-''' 
+'''
 --- Per-patient fog node mode ---
 Set PATIENT_ID to run this fog node scoped to a single patient
 (per-patient topology). Leave unset to fall back to the original

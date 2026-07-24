@@ -8,9 +8,11 @@ ever sees its own patient's stream. Lambda computes population-level stats
 and writes a single summary item back into the same table.
 
 Three aggregates computed (see project discussion for rationale):
-  1. Alert rate by zone       — actuation events with overuse_alert, technique_alert, low_dose_alert, divided by total events per zone
-  2. Overuse trend by hour    — count of overuse_alert=True per hour bucket
-  3. Avg flow rate per patient by device type — MDI & DPI, averaged across all actuation events for that patient in the window
+  1. Alert rate by zone — actuation events with overuse_alert,
+        technique_alert, low_dose_alert, divided by total events per zone
+  2. Overuse trend by hour — count of overuse_alert=True per hour bucket
+  3. Avg flow rate per patient by device type — MDI & DPI,
+        averaged across all actuation events for that patient in the window
 '''
 
 

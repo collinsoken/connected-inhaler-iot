@@ -1,5 +1,5 @@
 """
-Fog node entry point. Subscribes to all patients' events 
+Fog node entry point. Subscribes to all patients' events
 and forwards the events to AWS IoT Core.
 Run with: $env:PATIENT_ID="patient_xxx";python -m fog_node.main (PowerShell)
          set PATIENT_ID=patient_xxx && python -m fog_node.main (CMD)
@@ -27,13 +27,16 @@ cloud_client.tls_set(
     tls_version=ssl.PROTOCOL_TLSv1_2,
 )
 
+
 def on_cloud_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
         print(f"[FogNode] Connected to AWS IoT Core at {IOT_ENDPOINT}")
     else:
         print(f"[FogNode] AWS IoT Core connection failed: {reason_code}")
 
+
 cloud_client.on_connect = on_cloud_connect
+
 
 def forward_to_cloud(event):
     topic = f"patients/{event['patient_id']}/events"
@@ -44,6 +47,7 @@ def forward_to_cloud(event):
     else:
         print(f"[FogNode] WARNING: failed to forward event_id={event['event_id']}, publish rc={result[0]}")
 
+
 # Callback for when the client connects to the MQTT broker.
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
@@ -52,6 +56,7 @@ def on_connect(client, userdata, flags, reason_code, properties):
         print(f"[FogNode] Subscribed to '{SUBSCRIBE_TOPIC}'")
     else:
         print(f"[FogNode] Connection failed: {reason_code}")
+
 
 def on_message(client, userdata, msg):
     try:
@@ -69,7 +74,7 @@ def on_message(client, userdata, msg):
         print(f"[FogNode] {message}")
 
     forward_to_cloud(processed_event)
-    
+
 
 # MQTT client setup and main loop are in the main() function so that the fog node can be run as a script.
 def main():
@@ -87,13 +92,13 @@ def main():
         ) from e
 
     print("Fog node running. Press Ctrl+C to stop.")
-    
+
     try:
         cloud_client.connect(IOT_ENDPOINT, IOT_PORT, keepalive=60)
         cloud_client.loop_start()
     except OSError as e:
         raise RuntimeError(f"Could not connect to AWS IoT Core: {e}") from e
-    
+
     try:
         client.loop_forever()
     except KeyboardInterrupt:
@@ -104,4 +109,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

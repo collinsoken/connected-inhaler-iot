@@ -39,14 +39,14 @@ def run_patient(patient, stop_event: threading.Event):
 
             # --- Generation (frequency) ---
             if now - last_actuation >= ACTUATION_CHECK_INTERVAL_SECONDS:
-                role = random.choice(["rescue", "maintenance"])  #NOSONAR
+                role = random.choice(["rescue", "maintenance"])  # NOSONAR
                 device_info = patient["devices"][role]
                 event = generate_actuation_event(patient_id, role, device_info)
                 pending_events.append(event)
                 last_actuation = now
 
             if now - last_ambient >= AMBIENT_READING_INTERVAL_SECONDS:
-                role = random.choice(["rescue", "maintenance"])  #NOSONAR
+                role = random.choice(["rescue", "maintenance"])  # NOSONAR
                 device_info = patient["devices"][role]
                 event = generate_ambient_reading_event(patient_id, role, device_info)
                 pending_events.append(event)

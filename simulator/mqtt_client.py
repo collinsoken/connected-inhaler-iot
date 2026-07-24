@@ -6,7 +6,6 @@ so fog node can reuse the same conventions.
 
 import json
 import time
-from unittest import result
 import paho.mqtt.client as mqtt
 
 from simulator.config import MQTT_BROKER_HOST, MQTT_BROKER_PORT
@@ -68,4 +67,3 @@ class SimulatorMqttClient:
     def disconnect(self):
         self._client.loop_stop()
         self._client.disconnect()
-    

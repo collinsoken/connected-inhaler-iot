@@ -7,7 +7,7 @@ import boto3
 
 
 '''
-This Lambda function ingests patient events from an SQS queue and writes them to a DynamoDB table. 
+This Lambda function ingests patient events from an SQS queue and writes them to a DynamoDB table.
 It validates each event to ensure it has the required fields before writing it to the table.
 The function is triggered by an SQS event containing one or more messages.
 Each message is expected to contain a JSON-encoded event that will be validated and written to DynamoDB.
@@ -22,7 +22,8 @@ dynamodb = boto3.resource("dynamodb")
 TABLE_NAME = os.environ.get("TABLE_NAME", "PatientEvents")
 table = dynamodb.Table(TABLE_NAME)
 
-# Validation rules for incoming events. Each event must have a set of common fields, and additional fields depending on the event type.
+# Validation rules for incoming events. Each event must have a set of common fields,
+# and additional fields depending on the event type.
 COMMON_REQUIRED_FIELDS = [
     "event_id", "patient_id", "timestamp", "event_type",
     "device_id", "device_type",
@@ -56,17 +57,20 @@ def validate_event(item):
 
     return None
 
+
 """
-AWS Lambda handler function. 
-This function is triggered by an SQS event containing one or more messages. 
-Each message is expected to contain a JSON-encoded event 
+AWS Lambda handler function.
+This function is triggered by an SQS event containing one or more messages.
+Each message is expected to contain a JSON-encoded event
 that will be validated and written to DynamoDB.
 """
+
+
 def lambda_handler(event, context):
     batch_item_failures = []
 
-    """ 
-    Process each record in the SQS event. 
+    """
+    Process each record in the SQS event.
     If validation fails or an unhandled exception occurs,
     the message ID is added to the batch_item_failures list for retry.
     """
