@@ -6,6 +6,13 @@ from decimal import Decimal
 import boto3
 
 
+'''
+This Lambda function ingests patient events from an SQS queue and writes them to a DynamoDB table. 
+It validates each event to ensure it has the required fields before writing it to the table.
+The function is triggered by an SQS event containing one or more messages.
+Each message is expected to contain a JSON-encoded event that will be validated and written to DynamoDB.
+'''
+
 # Logger setup for AWS Lambda. The default log level is INFO, which is appropriate for this function.
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

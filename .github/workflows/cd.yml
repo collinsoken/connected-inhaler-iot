@@ -1,0 +1,68 @@
+name: CD - Deploy to AWS
+
+# --------------------------------------------------------------------
+# DESIGN NOTE (also documented in the project report):
+#
+# AWS session credentials (access key + secret key + session token),
+# There is no permanent IAM user,
+# and no OIDC available (the usual production pattern for
+# secretless GitHub Actions -> AWS auth), because the pipeline
+# is design to deploy to a shared, restricted teaching sandbox account 
+# (see Architecture Reference for the equivalent 
+# IAM constraint hit earlier in the project).
+#
+# Consequently, a fully automatic "deploy on every push" trigger would
+# fail unpredictably whenever the stored session token has expired
+#
+# This workflow is therefore deliberately gated to ensure it runs only when needed,
+# behind a manual workflow_dispatch trigger. The actual deploy steps are fully
+# automated (zip + aws lambda update-function-code + s3 cp) -- the
+# only manual step is refreshing the three secrets below from the
+# Learner Lab's "AWS Details" panel immediately before running it.
+# --------------------------------------------------------------------
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (Learner Lab session)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Deploy patient-events-ingest
+        run: |
+          cd cloud/lambda_ingest
+          zip function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name patient-events-ingest \
+            --zip-file fileb://function.zip
+
+      - name: Deploy patient-events-cohort
+        run: |
+          cd cloud/lambda_cohort
+          zip function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name patient-events-cohort \
+            --zip-file fileb://function.zip
+
+      - name: Deploy patient-dashboard-read
+        run: |
+          cd cloud/lambda_dashboard_read
+          zip function.zip lambda_function.py
+          aws lambda update-function-code \
+            --function-name patient-dashboard-read \
+            --zip-file fileb://function.zip
+
+      - name: Deploy dashboard frontend to S3
+        run: |
+          aws s3 cp dashboard/index.html s3://patient-dashboard-iot/index.html

@@ -8,6 +8,7 @@ venv/
 .env
 *.pem
 *.key
+CICD_SETUP_NOTES.md
 
 # AWS IoT device certificates
 **/certs/

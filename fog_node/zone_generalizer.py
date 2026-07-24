@@ -1,7 +1,7 @@
 """
 Zone generalization: converts raw GPS coordinates into a coarse named
 zone, and strips the raw coordinates from the outgoing event. This is
-the fog node's privacy-preserving responsibility (architecture doc §6),
+the fog node's privacy-preserving responsibility,
 distinct from its alerting responsibility.
 
 Uses simple Euclidean distance, not Haversine — acceptable at the small

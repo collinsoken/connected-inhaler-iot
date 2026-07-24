@@ -1,6 +1,6 @@
 """
 Low-dose alerting: flags when an inhaler's remaining_doses drops below
-a threshold. Stateless — reads the simulator-reported counter directly,
+a threshold. Stateless function that reads the simulator-reported counter directly,
 per the architecture decision that the fog node never reconstructs
 device state itself (see architecture).
 """

@@ -1,7 +1,7 @@
 """
 Overuse detection for rescue inhalers, using a sliding time window.
 Threshold is an illustrative simplification for demonstration, not
-clinical guidance — see architecture doc.
+clinical guidance.
 """
 
 from datetime import datetime, timedelta, timezone

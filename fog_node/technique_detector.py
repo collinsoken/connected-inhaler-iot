@@ -1,8 +1,8 @@
 """
 Technique detection: flags poor inhaler technique based on flow rate
-(device-type-aware) and device tilt angle. Stateless — each actuation
-event is judged independently. Thresholds are illustrative simplifications,
-not clinical guidance — see architecture doc §6/§10.
+(device-type-aware) and device tilt angle. Stateless function for each actuation
+event and is judged independently. Thresholds are illustrative simplifications,
+not clinical guidance.
 """
 
 from fog_node.config import MIN_FLOW_RATE_MDI, MIN_FLOW_RATE_DPI, MAX_TILT_ANGLE_DEGREES

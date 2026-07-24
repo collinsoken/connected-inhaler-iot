@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connected inhaler — patient monitoring dashboard</title>
+<style>
+  :root {
+    --bg: #F4F7F6;
+    --card: #FFFFFF;
+    --text: #1F2933;
+    --text-muted: #5F6B76;
+    --border: #E0E6E4;
+    --accent: #0F6E56;
+    --accent-bg: #E1F5EE;
+    --danger: #A32D2D;
+    --danger-bg: #FCEBEB;
+    --warning: #854F0B;
+    --warning-bg: #FAEEDA;
+    --technique: #3C3489;
+    --technique-bg: #EEEDFE;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+  header h1 { font-size: 20px; font-weight: 600; margin: 0; }
+  header p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
+  #refresh-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #refresh-btn:hover { opacity: 0.9; }
+  #last-updated {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  main {
+    padding: 24px 32px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  @media (min-width: 900px) {
+    main { grid-template-columns: 1fr 1.4fr; align-items: start; }
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .card h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .card h3 { font-size: 13px; font-weight: 600; margin: 16px 0 6px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .meta { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+  td.mono, th.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge-overuse { background: var(--danger-bg); color: var(--danger); }
+  .badge-technique { background: var(--technique-bg); color: var(--technique); }
+  .badge-lowdose { background: var(--warning-bg); color: var(--warning); }
+  .badge-none { background: var(--accent-bg); color: var(--accent); }
+  .empty { color: var(--text-muted); font-size: 13px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Connected inhaler — patient monitoring</h1>
+    <p>Live view over fog-processed events and cohort analytics</p>
+  </div>
+  <div style="text-align:right;">
+    <button id="refresh-btn" onclick="refreshAll()">Refresh now</button>
+    <div id="last-updated">not yet loaded</div>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="cohort-card">
+    <h2>Cohort summary</h2>
+    <div id="cohort-content"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section class="card" id="patient-card">
+    <h2>Patient events</h2>
+    <select id="patient-select" onchange="loadPatientEvents(this.value)">
+      <option value="">Loading patients…</option>
+    </select>
+    <div id="events-content"><p class="empty">Select a patient to view events.</p></div>
+  </section>
+</main>
+
+<script>
+  // Replace with your API Gateway invoke URL, no trailing slash.
+  const API_BASE_URL = "https://dcrwkcsokk.execute-api.us-east-1.amazonaws.com";
+
+  function formatTime(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString();
+  }
+
+  function alertBadges(event) {
+    const badges = [];
+    if (event.overuse_alert) badges.push('<span class="badge badge-overuse">Overuse</span>');
+    if (event.technique_alert) badges.push('<span class="badge badge-technique">Technique</span>');
+    if (event.low_dose_alert) badges.push('<span class="badge badge-lowdose">Low dose</span>');
+    return badges.length ? badges.join("") : '<span class="badge badge-none">none</span>';
+  }
+
+  function eventDetails(event) {
+    if (event.event_type === "actuation") {
+      return `${event.inhalation_flow_rate ?? "—"} L/min · tilt ${event.device_tilt_angle ?? "—"}° · ${event.remaining_doses ?? "—"} doses left`;
+    }
+    if (event.event_type === "ambient_reading") {
+      return `${event.ambient_temperature ?? "—"}°C · ${event.ambient_humidity ?? "—"}% humidity`;
+    }
+    return "—";
+  }
+
+  async function loadPatients() {
+    const select = document.getElementById("patient-select");
+    try {
+      const res = await fetch(`${API_BASE_URL}/patients`);
+      const data = await res.json();
+      const ids = data.patient_ids || [];
+      select.innerHTML = ids.map(id => `<option value="${id}">${id}</option>`).join("");
+      if (ids.length) loadPatientEvents(ids[0]);
+    } catch (err) {
+      select.innerHTML = `<option value="">Could not load patients</option>`;
+      console.error("loadPatients failed:", err);
+    }
+  }
+
+  async function loadPatientEvents(patientId) {
+    const container = document.getElementById("events-content");
+    if (!patientId) { container.innerHTML = '<p class="empty">Select a patient to view events.</p>'; return; }
+    container.innerHTML = '<p class="empty">Loading…</p>';
+    try {
+      const res = await fetch(`${API_BASE_URL}/patients/${patientId}/events?limit=20`);
+      const data = await res.json();
+      const events = data.events || [];
+      if (!events.length) {
+        container.innerHTML = '<p class="empty">No events recorded yet for this patient.</p>';
+        return;
+      }
+      const rows = events.map(e => `
+        <tr>
+          <td class="mono">${formatTime(e.timestamp)}</td>
+          <td>${e.event_type}</td>
+          <td>${e.zone || "—"}</td>
+          <td>${eventDetails(e)}</td>
+          <td>${alertBadges(e)}</td>
+        </tr>`).join("");
+      container.innerHTML = `
+        <table>
+          <thead><tr><th class="mono">Time</th><th>Type</th><th>Zone</th><th>Details</th><th>Alerts</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (err) {
+      container.innerHTML = '<p class="empty">Could not load events.</p>';
+      console.error("loadPatientEvents failed:", err);
+    }
+  }
+
+  async function loadCohortSummary() {
+    const container = document.getElementById("cohort-content");
+    try {
+      const res = await fetch(`${API_BASE_URL}/cohort/latest`);
+      const data = await res.json();
+      const s = data.summary;
+      if (!s) {
+        container.innerHTML = '<p class="empty">No cohort summary written yet.</p>';
+        return;
+      }
+
+      const zoneRows = Object.entries(s.alert_rate_by_zone || {}).map(([zone, rates]) => `
+        <tr>
+          <td>${zone}</td>
+          <td>${((rates.overuse_alert ?? 0) * 100).toFixed(0)}%</td>
+          <td>${((rates.technique_alert ?? 0) * 100).toFixed(0)}%</td>
+          <td>${((rates.low_dose_alert ?? 0) * 100).toFixed(0)}%</td>
+        </tr>`).join("");
+
+      const overuseRows = Object.entries(s.overuse_count_by_patient || {}).map(([pid, count]) => `
+        <tr><td class="mono">${pid}</td><td>${count}</td></tr>`).join("");
+
+      const flowRows = Object.entries(s.avg_flow_rate_by_patient_device || {}).flatMap(([pid, byDevice]) =>
+        Object.entries(byDevice).map(([device, rate]) => `
+          <tr><td class="mono">${pid}</td><td>${device}</td><td>${rate} L/min</td></tr>`)
+      ).join("");
+
+      container.innerHTML = `
+        <p class="meta">Window ${formatTime(s.window_start)} – ${formatTime(s.window_end)} · ${s.event_count} events</p>
+
+        <h3>Alert rate by zone</h3>
+        ${zoneRows ? `<table><thead><tr><th>Zone</th><th>Overuse</th><th>Technique</th><th>Low dose</th></tr></thead><tbody>${zoneRows}</tbody></table>` : '<p class="empty">No zone data in this window.</p>'}
+
+        <h3>Overuse count by patient</h3>
+        ${overuseRows ? `<table><thead><tr><th>Patient</th><th>Count</th></tr></thead><tbody>${overuseRows}</tbody></table>` : '<p class="empty">No overuse events in this window.</p>'}
+
+        <h3>Avg flow rate by patient &amp; device</h3>
+        ${flowRows ? `<table><thead><tr><th>Patient</th><th>Device</th><th>Avg flow rate</th></tr></thead><tbody>${flowRows}</tbody></table>` : '<p class="empty">No flow rate data in this window.</p>'}
+      `;
+    } catch (err) {
+      container.innerHTML = '<p class="empty">Could not load cohort summary.</p>';
+      console.error("loadCohortSummary failed:", err);
+    }
+  }
+
+  function refreshAll() {
+    loadCohortSummary();
+    const currentPatient = document.getElementById("patient-select").value;
+    if (currentPatient) loadPatientEvents(currentPatient);
+    document.getElementById("last-updated").textContent = "updated " + new Date().toLocaleTimeString();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadPatients();
+    loadCohortSummary();
+    document.getElementById("last-updated").textContent = "updated " + new Date().toLocaleTimeString();
+    setInterval(refreshAll, 30000);
+  });
+</script>
+
+</body>
+</html>

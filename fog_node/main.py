@@ -1,7 +1,9 @@
 """
-Fog node entry point. Subscribes to all patients' events and, for now,
-just logs what it receives.
-Run with: python -m fog_node.main
+Fog node entry point. Subscribes to all patients' events 
+and forwards the events to AWS IoT Core.
+Run with: $env:PATIENT_ID="patient_xxx";python -m fog_node.main (PowerShell)
+         set PATIENT_ID=patient_xxx && python -m fog_node.main (CMD)
+Ctrl+C to stop (graceful shutdown).
 """
 
 import json
