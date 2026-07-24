@@ -17,7 +17,7 @@ from fog_node.overuse_detector import check_overuse
 from fog_node.technique_detector import check_technique
 from fog_node.dose_monitor import check_low_dose
 from fog_node.zone_generalizer import generalize_location
-from fog_node.config import LOCATION_ANCHORS
+from shared.locations import LOCATION_ANCHORS
 
 
 def _actuation_event(patient_id, **overrides):
